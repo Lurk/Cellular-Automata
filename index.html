@@ -1,0 +1,153 @@
+<html>
+<head>
+	<style>
+		.row div {
+			height: 8px;
+			display: inline-block;
+			width: 8px;
+		}
+
+		.row div.active {
+			background-color: red;
+		}
+
+		.row div.inactive {
+			background-color: #99CCFF;
+		}
+
+		.header {
+			height: 50px;
+			display: flex;
+			align-items: center;
+			padding: 0 10px;
+			justify-content: space-between;
+		}
+
+		.automaton {
+			display: flex;
+			align-items: center;
+			flex-direction: column;
+		}
+
+		label {
+			margin-right: 10px;
+		}
+
+		body {
+			margin: 0
+		}
+	</style>
+</head>
+<body>
+<div class="header">
+	<h1>
+		Cellular Automata
+	</h1>
+	<div>
+		<label for="rule">
+			Choose rule
+		</label>
+		<select id="rule">
+		</select>
+	</div>
+</div>
+<div class="automaton">
+</div>
+<script>
+
+	const root = document.querySelector('.automaton');
+	const select = document.getElementById('rule');
+
+
+	function getRulesSet(number) {
+		const template = [
+			{rule: [1, 1, 1], value: 0},
+			{rule: [1, 1, 0], value: 0},
+			{rule: [1, 0, 1], value: 0},
+			{rule: [1, 0, 0], value: 0},
+			{rule: [0, 1, 1], value: 0},
+			{rule: [0, 1, 0], value: 0},
+			{rule: [0, 0, 1], value: 0},
+			{rule: [0, 0, 0], value: 0}
+		];
+		const val = ('000000000' + (number >>> 0).toString(2)).slice(-8).split('').map(function (n) {
+			return parseInt(n);
+		});
+		return template.map(function (rule, i) {
+			rule.value = val[i];
+			return rule;
+		});
+	}
+
+
+	function randomBinary() {
+		return Math.floor(Math.random() * 2)
+	}
+
+	function processRow(row, rules) {
+		return row.map(function (middle, i, row) {
+			const current = [row[i - 1 > 0 ? i - 1 : row.length - 1], middle, row[i + 1 < row.length ? i + 1 : 0]];
+			for (let z = 0, l = rules.length; z < l; z++) {
+				if (equal(current, rules[z].rule)) {
+					return rules[z].value;
+				}
+			}
+		});
+	}
+
+	function equal(array, array2) {
+		return array.length === array2.length
+				&& array.every(function (array_i, i) {
+					return array_i === array2[i]
+				})
+	}
+
+	function render(int) {
+		const w = Math.floor(window.innerWidth / 8) - 2;
+		const h = Math.floor((window.innerHeight - 50) / 8) - 1;
+		const rows = new Array(h);
+		root.innerHTML = "";
+		rows[0] = (new Array(w)).fill(0).map(randomBinary);
+		const rulesSet = getRulesSet(int);
+		for (let i = 0; i < h; i++) {
+			rows[i + 1] = processRow(rows[i], rulesSet);
+		}
+
+
+		rows.forEach((row)=> {
+			const divRow = document.createElement('div');
+			divRow.classList.add('row');
+			root.appendChild(divRow);
+			row.forEach((cell)=> {
+				const divCell = document.createElement('div');
+				divCell.classList.add(cell ? 'active' : 'inactive');
+				divRow.appendChild(divCell);
+			})
+
+		})
+	}
+	window.onresize = function () {
+		render(parseInt(window.location.hash.slice(1)) || 0);
+	};
+
+	select.onchange = function () {
+		window.location.hash = '#' + this.options[this.selectedIndex].value;
+		render(parseInt(this.options[this.selectedIndex].value));
+	};
+
+	const currentRulesSet = parseInt(window.location.hash.slice(1)) || 0;
+
+	for (let i = 0; i < 256; i++) {
+		let option = document.createElement('option');
+		option.value = i;
+		option.innerHTML = i;
+		option.selected = currentRulesSet === i;
+		select.appendChild(option);
+	}
+
+	render(currentRulesSet || 0);
+
+
+</script>
+</body>
+</html>
