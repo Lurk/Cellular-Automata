@@ -54,8 +54,7 @@
 <div class="automaton">
 </div>
 <script>
-
-    const currentRulesSet = parseInt(window.location.hash.slice(1)) || 0;
+    const currentRulesSet = parseInt(window.location.hash.slice(1)) || Math.floor(Math.random() * 256);
     const root = document.querySelector('.automaton');
     const select = document.getElementById('rule');
 
@@ -142,9 +141,8 @@
         option.selected = currentRulesSet === i;
         select.appendChild(option);
     }
-
+    window.location.hash = '#' + currentRulesSet;
     render(currentRulesSet || 0);
-
 </script>
 </body>
 </html>
